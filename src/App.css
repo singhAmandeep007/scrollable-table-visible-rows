@@ -1,7 +1,7 @@
 .App {
   text-align: center;
   font-family: sans-serif;
-  /* overflow-x: auto; */
+  overflow: auto;
   height: 100vh;
 }
 
@@ -22,20 +22,18 @@ tr:nth-child(even) {
   background-color: #dddddd;
 }
 div.stickyTop {
-  position: fixed;
-  top: 0;
-  padding: 8.5px;
+  position: absolute;
   font-size: 16px;
-  width: 100vw;
-  left: 0;
-  background: rgba(0, 151, 19, 0.5);
+  height: 100%;
+  width: 5vw;
+  text-align: left;
+  background: rgba(0, 151, 19, 0.1);
 }
-div.stickyBottom {
-  position: -webkit-sticky;
+/* div.stickyBottom {
   position: fixed;
   bottom: 0;
   padding: 8.5px;
   font-size: 16px;
   width: 100vw;
-  background: rgba(0, 151, 19, 0.5);
-}
+  background: rgba(0, 151, 19, 0.1);
+} */

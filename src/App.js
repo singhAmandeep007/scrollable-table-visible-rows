@@ -11,7 +11,6 @@ function App() {
   });
 
   const topBar = useRef();
-  const bottomBar = useRef()
 
   useEffect(() => {
     fetch('https://fakerapi.it/api/v1/persons?_quantity=50').then(res => {
@@ -28,43 +27,44 @@ function App() {
 
   useEffect(() => {
     if (state.students.length === 0) return;
-    let rect = topBar.current.getBoundingClientRect()
-    console.log(rect, topBar.current)
-    let el = document.getElementById("wrapper");
+
+    let wrapper = document.getElementById("wrapper");
     let targets = [...document.getElementsByClassName("tableRow")];
 
     let callback = (entries, observer) => {
-
       entries.forEach(entry => {
-        let doesOverlap = entry.boundingClientRect.y <= topBar.bottom;
-        if (doesOverlap) {
-          // let background = entry.target.style.background;
-          // setColor(background);
+        if (entry.isIntersecting) {
+          let wrapperCords = wrapper.getBoundingClientRect();
+          console.log('ENTRY', entry.boundingClientRect, entry.target)
+          console.log('Wrapper', wrapperCords)
           console.log(entry.target.dataset.id)
+          if (Math.round(entry.boundingClientRect.bottom) === Math.round(wrapperCords.bottom)) {
+            setState((state) => {
+              return {
+                ...state,
+                bottomRow: entry.target.dataset.id,
+                topRow: state.topRow
+              }
+            })
+          }
+
         }
       });
     };
 
     let observer = new IntersectionObserver(callback, {
-      root: el,
-      // threshold: [0, 0.1, 0.95, 1]
-      threshold: [0]
+      root: null,
+      //threshold: [0, 0.1, 0.95, 1],
+      threshold: [1],
+      rootMargin: '0px'
     });
 
     targets.forEach(target => observer.observe(target));
 
     return () => {
-      if (state.students.length === 0) return
       targets.forEach(target => observer.unobserve(target));
     };
-  }, [state.students])
-
-  function handleIntersection(index) {
-    setState({
-      ...state,
-      bottomRow: index
-    })
-  }
+  }, [state.students, state])
 
   function renderTableRows() {
     return state.students.map((student, index) => {
@@ -75,9 +75,6 @@ function App() {
         gender={student.gender}
         id={index}
         key={student.email}
-        handleIntersection={(index) => handleIntersection(index)}
-      // topBar={topBar}
-      // bottomBar={bottomBar}
       />
     })
   }
@@ -91,7 +88,7 @@ function App() {
         className="stickyTop"
         ref={topBar}
       >
-        Top Row : {state.topRow} Bottom Row: {state.bottomRow}
+        TR : {state.topRow} BR: {state.bottomRow}
       </div>
       <table>
         <tbody>
@@ -105,12 +102,12 @@ function App() {
           {renderTableRows()}
         </tbody>
       </table>
-      <div
+      {/* <div
         className="stickyBottom"
         ref={bottomBar}
       >
         Top Row : {state.topRow} Bottom Row: {state.bottomRow}
-      </div>
+      </div> */}
     </div>
   );
 }
