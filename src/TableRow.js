@@ -9,7 +9,7 @@ function TableRow({
 }) {
 
    return (
-      <tr key={email} data-id={id} className="tableRow">
+      <tr key={id} data-id={id} className="tableRow">
          <td>{id}</td>
          <td>{firstname}</td>
          <td>{lastname}</td>

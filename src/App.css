@@ -5,19 +5,32 @@
   max-height: 464px;
   height: 464px; */
 }
-.tableFixHead {
-  overflow: auto;
-  height: 464px;
+
+.tableContainer {
+  position: absolute;
+  display: table;
+  width: 100%;
+  height: 100%;
+  background: #ccc;
 }
-.tableFixHead thead th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
+.innerContainer {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
 }
 
+.centeredContent {
+  display: inline-block;
+  background: #fff;
+  border: 1px solid #000;
+  overflow: auto;
+  height: 470px;
+  max-height: 470px;
+  /* margin: 0px auto; */
+}
 table {
   border-collapse: collapse;
-  width: 100%;
+  overflow: auto;
 }
 th,
 td {
@@ -29,12 +42,9 @@ th {
 }
 
 div.sidebar {
-  position: fixed;
-  top: 23px;
-  left: 0;
-  padding: 5px;
+  padding: 5px 0px;
   font-size: 16px;
-  width: 100vw;
+  width: 100%;
   text-align: center;
   background: rgba(0, 151, 19, 0.8);
 }
