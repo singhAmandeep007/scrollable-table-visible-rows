@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import TableRow from './TableRow';
 import './App.css';
 
@@ -6,70 +6,95 @@ function App() {
 
   const [state, setState] = useState({
     students: [],
-    topRow: 0,
-    bottomRow: 20,
-    currentQuantity: 50,
+    topVisibleRow: 0,
+    bottomVisibleRow: null,
+    currentQuantity: 0,
+    tableRowHeight: null,
+    rowsPerTableView: null,
     isFetching: false
   });
 
-  const tblCont = useRef(null);
+  const tableContainer = useRef(null);
+  const tableHeader = useRef(null);
 
-  const fetchData = useCallback(async () => {
-    setTimeout(async () => {
-      const result = await fetch(`https://fakerapi.it/api/v1/persons?_quantity=${state.currentQuantity + 50}`);
-      const data = await result.json();
+  function fetchData(quantity) {
+    return fetch(`https://fakerapi.it/api/v1/persons?_quantity=${quantity}`);
+  }
+
+  // get initial student data
+  useEffect(() => {
+    const initialiseApp = async () => {
+      // console.log(internalTableHeight, tableRowHeight)
       setState((state) => {
         return {
           ...state,
-          students: [...data.data]
+          isFetching: true
         }
-      });
-    }, 1000);
-  }, [state.currentQuantity]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData])
-
-
-  const handleScroll = () => {
-    // scroll Top Get the number of pixels the content of a <div> element is scrolled vertically:
-    console.log('scrolltop', tblCont.current.scrollTop)
-    console.log('clientHeight', tblCont.current.clientHeight)
-    console.log('offsetHeight', tblCont.current.offsetHeight)
-    console.log('scrollHeight', tblCont.current.scrollHeight)
-    console.log('to compare', Math.ceil(tblCont.current.offsetHeight + tblCont.current.scrollTop))
-
-    if (
-      Math.ceil(tblCont.current.offsetHeight + tblCont.current.scrollTop) - 2 !== tblCont.current.scrollHeight || state.isFetching
-    )
-      return;
-    setState({
-      ...state,
-      isFetching: true
-    });
-    console.log('handling scroll')
-  };
-
-  // get more data and set fetching to false
-  const fetchMoreStudents = useCallback(() => {
-    fetchData();
-    setState((state) => {
-      return {
-        ...state,
-        currentQuantity: state.currentQuantity + 50,
-        isFetching: false
+      })
+      fetchData(50).then(response => response.json()).then(data => {
+        setState((state) => {
+          return {
+            ...state,
+            students: [...data.data],
+            isFetching: false
+          }
+        })
       }
-    });
-  }, [fetchData]);
+      ).then(() => {
+        const tableRowHeight = document.querySelector('.tableHeading')?.offsetHeight;
+        const internalTableHeight = tableContainer.current?.offsetHeight - tableHeader.current?.offsetHeight;
+        let rowsPerTableView = Math.floor(internalTableHeight / tableRowHeight);
+        setState((state) => {
+          return {
+            ...state,
+            tableRowHeight,
+            bottomVisibleRow: rowsPerTableView,
+            rowsPerTableView
+          }
+        })
+      })
+
+    }
+    initialiseApp();
+  }, [])
+
+  const handleScroll = async () => {
+    // TERM: scroll Top -> Get the number of pixels the content of a <div> element is scrolled vertically
+    // TERM: clientHeight ->returns the inner height of an element in pixels, including padding but not the horizontal scrollbar height, border, or margin
+    // TERM: offsetHeight -> is a measurement which includes the element borders, the element vertical padding, the element horizontal scrollbar (if present, if rendered) and the element CSS height.
+    // TERM: scrollHeight -> is a measurement of the height of an element's content INCLUDING content not visible on the screen due to overflow
+    // console.log('scrollTop', tableContainer.current.scrollTop)
 
 
-  // only when isFetching is changed useEffect is called
-  useEffect(() => {
-    if (!state.isFetching) return;
-    fetchMoreStudents();
-  }, [state.isFetching, fetchMoreStudents]);
+    let table = tableContainer.current;
+    // TERM: topVisibleRow = pixels scrolled from top of table divided by the height of single row
+    let topVisibleRow = Math.max(Math.floor((table.scrollTop - tableHeader.current.offsetHeight) / state.tableRowHeight), 0);
+    // TERM:bottomVisibleRow = topVisibleRow + total no. of rows visible at a particular moment in table's viewport
+    let bottomVisibleRow = Math.min(Math.floor(topVisibleRow + state.rowsPerTableView), state.students.length);
+    if (topVisibleRow !== state.topVisibleRow || bottomVisibleRow !== state.bottomVisibleRow) {
+      setState({
+        ...state,
+        topVisibleRow,
+        bottomVisibleRow
+      })
+    }
+    if (Math.ceil(table.offsetHeight + table.scrollTop) - 2 === table.scrollHeight && !state.isFetching) {
+      setState({
+        ...state,
+        isFetching: true
+      });
 
+      const data = await fetchData(state.currentQuantity + 50).then(response => response.json());
+      setState((state) => {
+        return {
+          ...state,
+          students: [...data.data],
+          currentQuantity: state.currentQuantity + 50,
+          isFetching: false
+        }
+      })
+    }
+  };
 
   // generate table rows
   function renderTableRows() {
@@ -80,7 +105,7 @@ function App() {
         email={student.email}
         gender={student.gender}
         id={index}
-        key={student.email}
+        key={index}
       />
     })
   }
@@ -91,14 +116,14 @@ function App() {
   return (
     <div className="App">
       <div className="sidebar">
-        TR : {state.topRow} BR: {state.bottomRow} Page: {state.currentQuantity}
+        TR : {state.topVisibleRow} BR: {state.bottomVisibleRow} Quantity: {state.currentQuantity}
       </div>
       <div className="tableContainer">
         <div className="innerContainer">
-          <div className="centeredContent" onScroll={() => handleScroll()} ref={tblCont}>
+          <div className="centeredContent" onScroll={() => handleScroll()} ref={tableContainer}>
             <table style={{ scrollBehavior: "smooth" }} >
               <thead>
-                <tr className="tableRow">
+                <tr className="tableHeading" ref={tableHeader}>
                   <th key='SerialNum'>S.No.</th>
                   <th key='firstname'>First Name</th>
                   <th key='lastname'>Last Name</th>
