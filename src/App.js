@@ -58,47 +58,53 @@ function App() {
     initialiseApp();
   }, [])
 
+  let scrollStopTimer = -1;
   const handleScroll = async () => {
     // TERM: scrollTop -> Get the number of pixels the content of a <div> element is scrolled vertically
     // TERM: clientHeight ->returns the inner height of an element in pixels, including padding but not the horizontal scrollbar height, border, or margin
     // TERM: offsetHeight -> is a measurement which includes the element borders, the element vertical padding, the element horizontal scrollbar (if present, if rendered) and the element CSS height.
     // TERM: scrollHeight -> is a measurement of the height of an element's content INCLUDING content not visible on the screen due to overflow
-
-    let tblCont = tableContainer.current;
-    // console.log('scrollTop', tableContainer.current.scrollTop, 'offsetHeight', tableContainer.current.offsetHeight)
-    // TERM: topVisibleRow = pixels scrolled from top of table divided by the height of single row
-    //console.log('scrollTop', tblCont.scrollTop);
-    let topVisibleRow = Math.max(Math.floor(tblCont.scrollTop / state.tableRowHeight), 1); // scroll / 23
-    // TERM:bottomVisibleRow = topVisibleRow + total no. of rows visible at a particular moment in table's viewport
-    let bottomVisibleRow = Math.min(topVisibleRow + state.rowsPerTableView, state.students.length - 1);
-    if (topVisibleRow !== state.topVisibleRow || bottomVisibleRow !== state.bottomVisibleRow) {
-      setState({
-        ...state,
-        topVisibleRow,
-        bottomVisibleRow
-      })
-    }
     //console.log(Math.ceil(tblCont.offsetHeight + tblCont.scrollTop) - 2, tblCont.scrollHeight)
     // console.log('compare', tblCont.scrollHeight * 0.65, tblCont.scrollTop, tblCont.scrollHeight)
     // console.log('bool', tblCont.scrollHeight * 0.65 <= tblCont.scrollTop && tblCont.scrollTop <= tblCont.scrollHeight)
     //if (Math.ceil(tblCont.offsetHeight + tblCont.scrollTop) - 2 === tblCont.scrollHeight && !state.isFetching) {
-    if (tblCont.scrollHeight * 0.65 <= tblCont.scrollTop && tblCont.scrollTop <= tblCont.scrollHeight && !state.isFetching) {
-      setState({
-        ...state,
-        isFetching: true
-      });
 
-      fetchData(state.currentQuantity + 100).then(response => response.json()).then(data => {
-        setState((state) => {
-          return {
-            ...state,
-            students: [...data.data],
-            currentQuantity: state.currentQuantity + 100,
-            isFetching: false
-          }
+    if (scrollStopTimer !== -1) {
+      clearTimeout(scrollStopTimer);
+    }
+
+    scrollStopTimer = setTimeout(function () {
+      let tblCont = tableContainer.current;
+      if (tblCont.scrollHeight * 0.75 <= tblCont.scrollTop && tblCont.scrollTop <= tblCont.scrollHeight && !state.isFetching) {
+        setState({
+          ...state,
+          isFetching: true
+        });
+        fetchData(state.currentQuantity + 100).then(response => response.json()).then(data => {
+          setState((state) => {
+            return {
+              ...state,
+              students: [...data.data],
+              currentQuantity: state.currentQuantity + 100,
+              isFetching: false
+            }
+          })
         })
-      })
-    };
+      };
+      // console.log('scrollTop', tableContainer.current.scrollTop, 'offsetHeight', tableContainer.current.offsetHeight)
+      // TERM: topVisibleRow = pixels scrolled from top of table divided by the height of single row
+      //console.log('scrollTop', tblCont.scrollTop);
+      let topVisibleRow = Math.max(Math.floor(tblCont.scrollTop / state.tableRowHeight), 1); // scroll / 23
+      // TERM:bottomVisibleRow = topVisibleRow + total no. of rows visible at a particular moment in table's viewport
+      let bottomVisibleRow = Math.min(topVisibleRow + state.rowsPerTableView, state.students.length - 1);
+      if (topVisibleRow !== state.topVisibleRow || bottomVisibleRow !== state.bottomVisibleRow) {
+        setState({
+          ...state,
+          topVisibleRow,
+          bottomVisibleRow
+        })
+      }
+    }, 500)
   };
 
   // generate table rows
