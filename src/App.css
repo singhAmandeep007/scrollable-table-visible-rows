@@ -35,7 +35,7 @@ table {
 }
 th,
 td {
-  border: 1px solid #dddddd;
+  /* border: 1px solid #dddddd; */
   text-align: left;
 }
 th {
@@ -48,4 +48,8 @@ div.sidebar {
   width: 100%;
   text-align: center;
   background: rgba(0, 151, 19, 0.8);
+}
+th {
+  position: sticky;
+  top: 0;
 }

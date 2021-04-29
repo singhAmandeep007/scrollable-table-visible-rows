@@ -36,7 +36,8 @@ function App() {
           return {
             ...state,
             students: [...data.data],
-            isFetching: false
+            isFetching: false,
+            currentQuantity: 50
           }
         })
       }
@@ -53,20 +54,19 @@ function App() {
           }
         })
       })
-
     }
     initialiseApp();
   }, [])
 
   const handleScroll = async () => {
-    // TERM: scroll Top -> Get the number of pixels the content of a <div> element is scrolled vertically
+    // TERM: scrollTop -> Get the number of pixels the content of a <div> element is scrolled vertically
     // TERM: clientHeight ->returns the inner height of an element in pixels, including padding but not the horizontal scrollbar height, border, or margin
     // TERM: offsetHeight -> is a measurement which includes the element borders, the element vertical padding, the element horizontal scrollbar (if present, if rendered) and the element CSS height.
     // TERM: scrollHeight -> is a measurement of the height of an element's content INCLUDING content not visible on the screen due to overflow
-    // console.log('scrollTop', tableContainer.current.scrollTop)
-
 
     let table = tableContainer.current;
+    console.dir(table)
+    // console.log('scrollTop', tableContainer.current.scrollTop, 'offsetHeight', tableContainer.current.offsetHeight)
     // TERM: topVisibleRow = pixels scrolled from top of table divided by the height of single row
     let topVisibleRow = Math.max(Math.floor((table.scrollTop - tableHeader.current.offsetHeight) / state.tableRowHeight), 0);
     // TERM:bottomVisibleRow = topVisibleRow + total no. of rows visible at a particular moment in table's viewport
@@ -84,14 +84,15 @@ function App() {
         isFetching: true
       });
 
-      const data = await fetchData(state.currentQuantity + 50).then(response => response.json());
-      setState((state) => {
-        return {
-          ...state,
-          students: [...data.data],
-          currentQuantity: state.currentQuantity + 50,
-          isFetching: false
-        }
+      fetchData(state.currentQuantity + 50).then(response => response.json()).then(data => {
+        setState((state) => {
+          return {
+            ...state,
+            students: [...data.data],
+            currentQuantity: state.currentQuantity + 50,
+            isFetching: false
+          }
+        })
       })
     }
   };
