@@ -27,12 +27,11 @@
   height: 483px;
   min-height: 483px;
   max-height: 483px;
-  /* width: 100vw; */
 }
 table {
   border-collapse: collapse;
-  overflow-y: auto;
-  overflow-x: auto;
+  /* overflow-y: auto;
+  overflow-x: auto; */
 }
 th,
 td {
@@ -55,10 +54,19 @@ div.sidebar {
   text-align: center;
   background: rgba(0, 151, 19, 0.8);
 }
-/* th {
-  position: sticky;
-  top: 0;
-} */
+
 tr:nth-child(even) {
   background-color: #dddddd;
+}
+@media only screen and (max-width: 600px) {
+  .centeredContent {
+    display: inline-block;
+    background: #fff;
+    border: 1px solid #000;
+    overflow: auto;
+    height: 483px;
+    min-height: 483px;
+    max-height: 483px;
+    width: 100vw;
+  }
 }

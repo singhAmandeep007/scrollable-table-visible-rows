@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import TableRow from './TableRow';
 import './App.css';
 
@@ -16,6 +16,7 @@ function App() {
 
   const tableContainer = useRef(null);
   const tableHeader = useRef(null);
+  const scrollStopTimer = useRef(-1);
 
   function fetchData(quantity) {
     return fetch(`https://fakerapi.it/api/v1/persons?_quantity=${quantity}`);
@@ -49,7 +50,7 @@ function App() {
           return {
             ...state,
             tableRowHeight,// 23
-            bottomVisibleRow: rowsPerTableView - 1,// excluding heading -> 20 (initial)
+            bottomVisibleRow: rowsPerTableView,// excluding heading -> 20 (initial)
             rowsPerTableView // 21
           }
         })
@@ -58,8 +59,7 @@ function App() {
     initialiseApp();
   }, [])
 
-  let scrollStopTimer = -1;
-  const handleScroll = async () => {
+  const handleScroll = useMemo(() => async () => {
     // TERM: scrollTop -> Get the number of pixels the content of a <div> element is scrolled vertically
     // TERM: clientHeight ->returns the inner height of an element in pixels, including padding but not the horizontal scrollbar height, border, or margin
     // TERM: offsetHeight -> is a measurement which includes the element borders, the element vertical padding, the element horizontal scrollbar (if present, if rendered) and the element CSS height.
@@ -69,13 +69,14 @@ function App() {
     // console.log('bool', tblCont.scrollHeight * 0.65 <= tblCont.scrollTop && tblCont.scrollTop <= tblCont.scrollHeight)
     //if (Math.ceil(tblCont.offsetHeight + tblCont.scrollTop) - 2 === tblCont.scrollHeight && !state.isFetching) {
 
-    if (scrollStopTimer !== -1) {
-      clearTimeout(scrollStopTimer);
+    if (scrollStopTimer.current !== -1) {
+      clearTimeout(scrollStopTimer.current);
     }
 
-    scrollStopTimer = setTimeout(function () {
+    scrollStopTimer.current = setTimeout(function () {
       let tblCont = tableContainer.current;
-      if (tblCont.scrollHeight * 0.75 <= tblCont.scrollTop && tblCont.scrollTop <= tblCont.scrollHeight && !state.isFetching) {
+      // if (tblCont.scrollHeight * 0.75 <= tblCont.scrollTop && tblCont.scrollTop <= tblCont.scrollHeight && !state.isFetching) {
+      if (state.currentQuantity - 40 <= state.bottomVisibleRow && state.bottomVisibleRow <= state.currentQuantity) {
         setState({
           ...state,
           isFetching: true
@@ -105,10 +106,10 @@ function App() {
         })
       }
     }, 500)
-  };
+  }, [state]);
 
   // generate table rows
-  function renderTableRows() {
+  const renderTableRows = useMemo(() => () => {
     return state.students.map((student, index) => {
       return <TableRow
         firstname={student.firstname}
@@ -119,7 +120,7 @@ function App() {
         key={index}
       />
     })
-  }
+  }, [state.students])
 
   if (state.students.length === 0) {
     return <div>loading...</div>
