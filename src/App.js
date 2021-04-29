@@ -6,7 +6,7 @@ function App() {
 
   const [state, setState] = useState({
     students: [],
-    topVisibleRow: 0,
+    topVisibleRow: 1,
     bottomVisibleRow: null,
     currentQuantity: 0,
     tableRowHeight: null,
@@ -31,26 +31,26 @@ function App() {
           isFetching: true
         }
       })
-      fetchData(50).then(response => response.json()).then(data => {
+      fetchData(100).then(response => response.json()).then(data => {
         setState((state) => {
           return {
             ...state,
             students: [...data.data],
             isFetching: false,
-            currentQuantity: 50
+            currentQuantity: 100
           }
         })
       }
       ).then(() => {
-        const tableRowHeight = document.querySelector('.tableHeading')?.offsetHeight;
-        const internalTableHeight = tableContainer.current?.offsetHeight - tableHeader.current?.offsetHeight;
-        let rowsPerTableView = Math.floor(internalTableHeight / tableRowHeight);
+        const tableRowHeight = document.querySelector('.tableRow')?.offsetHeight; // 23
+        const internalTableHeight = tableContainer.current?.offsetHeight - 2; // 485-2 (border)
+        let rowsPerTableView = Math.floor(internalTableHeight / tableRowHeight) - 1; // 21
         setState((state) => {
           return {
             ...state,
-            tableRowHeight,
-            bottomVisibleRow: rowsPerTableView,
-            rowsPerTableView
+            tableRowHeight,// 23
+            bottomVisibleRow: rowsPerTableView - 1,// excluding heading -> 20 (initial)
+            rowsPerTableView // 21
           }
         })
       })
@@ -64,13 +64,13 @@ function App() {
     // TERM: offsetHeight -> is a measurement which includes the element borders, the element vertical padding, the element horizontal scrollbar (if present, if rendered) and the element CSS height.
     // TERM: scrollHeight -> is a measurement of the height of an element's content INCLUDING content not visible on the screen due to overflow
 
-    let table = tableContainer.current;
-    console.dir(table)
+    let tblCont = tableContainer.current;
     // console.log('scrollTop', tableContainer.current.scrollTop, 'offsetHeight', tableContainer.current.offsetHeight)
     // TERM: topVisibleRow = pixels scrolled from top of table divided by the height of single row
-    let topVisibleRow = Math.max(Math.floor((table.scrollTop - tableHeader.current.offsetHeight) / state.tableRowHeight), 0);
+    //console.log('scrollTop', tblCont.scrollTop);
+    let topVisibleRow = Math.max(Math.floor(tblCont.scrollTop / state.tableRowHeight), 1); // scroll / 23
     // TERM:bottomVisibleRow = topVisibleRow + total no. of rows visible at a particular moment in table's viewport
-    let bottomVisibleRow = Math.min(Math.floor(topVisibleRow + state.rowsPerTableView), state.students.length);
+    let bottomVisibleRow = Math.min(topVisibleRow + state.rowsPerTableView, state.students.length - 1);
     if (topVisibleRow !== state.topVisibleRow || bottomVisibleRow !== state.bottomVisibleRow) {
       setState({
         ...state,
@@ -78,23 +78,27 @@ function App() {
         bottomVisibleRow
       })
     }
-    if (Math.ceil(table.offsetHeight + table.scrollTop) - 2 === table.scrollHeight && !state.isFetching) {
+    //console.log(Math.ceil(tblCont.offsetHeight + tblCont.scrollTop) - 2, tblCont.scrollHeight)
+    // console.log('compare', tblCont.scrollHeight * 0.65, tblCont.scrollTop, tblCont.scrollHeight)
+    // console.log('bool', tblCont.scrollHeight * 0.65 <= tblCont.scrollTop && tblCont.scrollTop <= tblCont.scrollHeight)
+    //if (Math.ceil(tblCont.offsetHeight + tblCont.scrollTop) - 2 === tblCont.scrollHeight && !state.isFetching) {
+    if (tblCont.scrollHeight * 0.65 <= tblCont.scrollTop && tblCont.scrollTop <= tblCont.scrollHeight && !state.isFetching) {
       setState({
         ...state,
         isFetching: true
       });
 
-      fetchData(state.currentQuantity + 50).then(response => response.json()).then(data => {
+      fetchData(state.currentQuantity + 100).then(response => response.json()).then(data => {
         setState((state) => {
           return {
             ...state,
             students: [...data.data],
-            currentQuantity: state.currentQuantity + 50,
+            currentQuantity: state.currentQuantity + 100,
             isFetching: false
           }
         })
       })
-    }
+    };
   };
 
   // generate table rows
@@ -105,7 +109,7 @@ function App() {
         lastname={student.lastname}
         email={student.email}
         gender={student.gender}
-        id={index}
+        id={index + 1}
         key={index}
       />
     })
@@ -116,13 +120,15 @@ function App() {
   }
   return (
     <div className="App">
-      <div className="sidebar">
-        TR : {state.topVisibleRow} BR: {state.bottomVisibleRow} Quantity: {state.currentQuantity}
-      </div>
+
       <div className="tableContainer">
+        <div className="sidebar">
+          TR : {state.topVisibleRow} BR: {state.bottomVisibleRow} Quantity: {state.currentQuantity}
+        </div>
         <div className="innerContainer">
+
           <div className="centeredContent" onScroll={() => handleScroll()} ref={tableContainer}>
-            <table style={{ scrollBehavior: "smooth" }} >
+            <table id="studentTable" >
               <thead>
                 <tr className="tableHeading" ref={tableHeader}>
                   <th key='SerialNum'>S.No.</th>
