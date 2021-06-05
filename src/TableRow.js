@@ -4,7 +4,8 @@ function TableRow({
    firstname,
    lastname,
    email,
-   gender,
+   phone,
+   website,
    id
 }) {
 
@@ -14,7 +15,8 @@ function TableRow({
          <td>{firstname}</td>
          <td>{lastname}</td>
          <td>{email}</td>
-         <td>{gender}</td>
+         <td>{phone}</td>
+         <td>{website}</td>
       </tr>
    )
 }
