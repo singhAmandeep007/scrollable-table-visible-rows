@@ -1,3 +1,10 @@
+## App to demonstrate the calculation of top row and bottom row visible of a table at a particular time using.
+
+### Video: 
+https://user-images.githubusercontent.com/55043082/147321681-f797461c-b48a-430d-81b1-20e20d8f2b3c.mp4
+
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
